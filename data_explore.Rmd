@@ -1,0 +1,77 @@
+---
+title: "initial_explore"
+output: html_document
+output: pdf
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tibble)
+library(ggplot2)
+library(plyr)
+```
+
+## Various Plots for Exploration
+
+# Data cleaning
+
+```{r}
+# read in the data
+library(readxl)
+alldrugs <- read_excel("MCM_NFLIS_Data.xlsx", sheet = "Data")
+```
+
+```{r}
+# Begin tidying and grabbing desired data
+stateDrugs <- tibble( "Year" = rep(2010:2017, each = 5), 
+                      "State" = rep(c("VA", "OH", "PA", "KY", "WV"), 8))
+
+```
+
+```{r}
+# need to count counties and divide by total for each year; count counties once
+
+stateInfo <- tibble("State" = c("VA", "OH", "PA", "KY", "WV"), "N_Counties" = c(0,0,0,0,0))
+for (i in 1:5){
+  stateInfo[i, 2] <- length(unique(alldrugs$COUNTY[alldrugs$State == as.character(stateInfo[i, 1])]))
+}
+
+# statInfo now has county counts for each state. Use this to create averages for each year
+
+stateTotalGrabber <- function (source, state, year) {
+  return(as.numeric(subset(source, State == state & YYYY == year, select = TotalDrugReportsState)[1,1]))
+}
+
+StateCountyAvg <- rep(0,length(stateDrugs$Year))
+
+for (i in 1:length(stateDrugs$Year)){
+  state <- as.character(stateDrugs[i,2])
+  year <- as.numeric(stateDrugs[i,1])
+  
+  StateCountyAvg[i] <- stateTotalGrabber(alldrugs, state, year) /
+    as.numeric(subset(stateInfo, State == state, select = N_Counties))
+}
+
+# now add these averages to our data table
+
+stateDrugs$Avg_State_Rpt <- StateCountyAvg
+```
+
+# Explore State Summary
+
+```{r}
+# Total State Average Reports per County
+
+ggplot(stateDrugs, aes(x = Year, y = Avg_State_Rpt))+
+  geom_line(aes(group = State, color = State))+
+  ggtitle("Total State Average Reports per County")+
+  xlab("Year")+
+  ylab("Average Reports")
+```
+
+```{r}
+
+
+
+```
+
