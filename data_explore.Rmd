@@ -13,6 +13,15 @@ library(plyr)
 
 ## Various Plots for Exploration
 
+
+```{r}
+# read in the data
+library(readxl)
+alldrugs <- read_excel("MCM_NFLIS_Data.xlsx", sheet = "Data")
+```
+
+
+
 ```{r}
 # State Totals
 
@@ -50,42 +59,55 @@ alldrugs.OH <- subset(alldrugs, State == "OH")
 ggplot(alldrugs.OH, aes(YYYY, TotalDrugReportsCounty))+
   geom_line(aes(group = COUNTY, color = COUNTY))+
   ggtitle("Oklahoma County Total Drug Reports (2010-2017)")+
+  theme(legend.position = "none")+
   xlab("Year")+
   ylab("Total Drug Reports")
+```
 
+```{r}
 # KY
 alldrugs.KY <- subset(alldrugs, State == "KY")
 
 ggplot(alldrugs.KY, aes(YYYY, TotalDrugReportsCounty))+
   geom_line(aes(group = COUNTY, color = COUNTY))+
   ggtitle("Kentucky County Total Drug Reports (2010-2017)")+
+  theme(legend.position = "none")+
   xlab("Year")+
   ylab("Total Drug Reports")
+```
 
+```{r}
 # PA
 alldrugs.PA <- subset(alldrugs, State == "PA")
 
 ggplot(alldrugs.PA, aes(YYYY, TotalDrugReportsCounty))+
   geom_line(aes(group = COUNTY, color = COUNTY))+
   ggtitle("Pennsylvania County Total Drug Reports (2010-2017)")+
+  theme(legend.position = "none")+
   xlab("Year")+
   ylab("Total Drug Reports")
+```
 
+```{r}
 # VA
 alldrugs.VA <- subset(alldrugs, State == "VA")
 
 ggplot(alldrugs.VA, aes(YYYY, TotalDrugReportsCounty))+
   geom_line(aes(group = COUNTY, color = COUNTY))+
   ggtitle("Virginia County Total Drug Reports (2010-2017)")+
+  theme(legend.position = "none")+
   xlab("Year")+
   ylab("Total Drug Reports")
+```
 
+```{r}
 # WV
 alldrugs.WV <- subset(alldrugs, State == "WV")
 
 ggplot(alldrugs.WV, aes(YYYY, TotalDrugReportsCounty))+
   geom_line(aes(group = COUNTY, color = COUNTY))+
   ggtitle("West Virginia County Total Drug Reports (2010-2017)")+
+  theme(legend.position = "none")+
   xlab("Year")+
   ylab("Total Drug Reports")
 ```
@@ -102,7 +124,9 @@ alldrugs.model$rvals <- unique(alldrugs.lo_fit$fitted)
 plot(alldrugs.rvals, alldrugs.model$Data, main = "Predicted (Model) vs. Fitted (loess) values", xlab = "Fitted Values", ylab = "Predicted Values")
 abline(lm(alldrugs.model$Data ~ alldrugs.rvals), col = "red")
 legend(60000,55000, legend = c("R^2 = 0.89"),col=c("red"))
+```
 
+```{r}
 ggplot(alldrugs.model)+
   geom_line(aes(Year,Data), color = "red")+
   geom_line(aes(Year,rvals), color = "blue")+
