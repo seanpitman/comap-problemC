@@ -13,65 +13,106 @@ library(plyr)
 
 ## Various Plots for Exploration
 
-# Data cleaning
-
 ```{r}
-# read in the data
-library(readxl)
-alldrugs <- read_excel("MCM_NFLIS_Data.xlsx", sheet = "Data")
-```
+# State Totals
 
-```{r}
-# Begin tidying and grabbing desired data
-stateDrugs <- tibble( "Year" = rep(2010:2017, each = 5), 
-                      "State" = rep(c("VA", "OH", "PA", "KY", "WV"), 8))
-
-```
-
-```{r}
-# need to count counties and divide by total for each year; count counties once
-
-stateInfo <- tibble("State" = c("VA", "OH", "PA", "KY", "WV"), "N_Counties" = c(0,0,0,0,0))
-for (i in 1:5){
-  stateInfo[i, 2] <- length(unique(alldrugs$COUNTY[alldrugs$State == as.character(stateInfo[i, 1])]))
-}
-
-# statInfo now has county counts for each state. Use this to create averages for each year
-
-stateTotalGrabber <- function (source, state, year) {
-  return(as.numeric(subset(source, State == state & YYYY == year, select = TotalDrugReportsState)[1,1]))
-}
-
-StateCountyAvg <- rep(0,length(stateDrugs$Year))
-
-for (i in 1:length(stateDrugs$Year)){
-  state <- as.character(stateDrugs[i,2])
-  year <- as.numeric(stateDrugs[i,1])
-  
-  StateCountyAvg[i] <- stateTotalGrabber(alldrugs, state, year) /
-    as.numeric(subset(stateInfo, State == state, select = N_Counties))
-}
-
-# now add these averages to our data table
-
-stateDrugs$Avg_State_Rpt <- StateCountyAvg
-```
-
-# Explore State Summary
-
-```{r}
-# Total State Average Reports per County
-
-ggplot(stateDrugs, aes(x = Year, y = Avg_State_Rpt))+
+ggplot(alldrugs, aes(YYYY, TotalDrugReportsState))+
   geom_line(aes(group = State, color = State))+
-  ggtitle("Total State Average Reports per County")+
+  geom_smooth(method = "loess", span = 0.2, size = 2)+
+  ggtitle("State Total Drug Reports (2010-2017)")+
   xlab("Year")+
-  ylab("Average Reports")
+  ylab("Total Drug Reports")
 ```
 
 ```{r}
+# store this model for use later
+
+alldrugs.lo_fit <- loess(TotalDrugReportsState ~ YYYY, alldrugs)
+
+```
+
+```{r}
+# County Totals
+ggplot(alldrugs, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  theme(legend.position = "none")+
+  ggtitle("County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+```
+
+```{r}
+# County Plots by State
+
+# OH
+alldrugs.OH <- subset(alldrugs, State == "OH")
+
+ggplot(alldrugs.OH, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  ggtitle("Oklahoma County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+
+# KY
+alldrugs.KY <- subset(alldrugs, State == "KY")
+
+ggplot(alldrugs.KY, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  ggtitle("Kentucky County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+
+# PA
+alldrugs.PA <- subset(alldrugs, State == "PA")
+
+ggplot(alldrugs.PA, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  ggtitle("Pennsylvania County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+
+# VA
+alldrugs.VA <- subset(alldrugs, State == "VA")
+
+ggplot(alldrugs.VA, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  ggtitle("Virginia County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+
+# WV
+alldrugs.WV <- subset(alldrugs, State == "WV")
+
+ggplot(alldrugs.WV, aes(YYYY, TotalDrugReportsCounty))+
+  geom_line(aes(group = COUNTY, color = COUNTY))+
+  ggtitle("West Virginia County Total Drug Reports (2010-2017)")+
+  xlab("Year")+
+  ylab("Total Drug Reports")
+```
 
 
+# Model Fitting
 
+```{r}
+alldrugs.model <- tibble( Year = 2010:2017, Data = c(50000, 51220, 54711, 58454, 61521, 63977, 65721, 66942))
+alldrugs.rvals <- unique(alldrugs.lo_fit$fitted)
+
+alldrugs.model$rvals <- unique(alldrugs.lo_fit$fitted)
+
+plot(alldrugs.rvals, alldrugs.model$Data, main = "Predicted (Model) vs. Fitted (loess) values", xlab = "Fitted Values", ylab = "Predicted Values")
+abline(lm(alldrugs.model$Data ~ alldrugs.rvals), col = "red")
+legend(60000,55000, legend = c("R^2 = 0.89"),col=c("red"))
+
+ggplot(alldrugs.model)+
+  geom_line(aes(Year,Data), color = "red")+
+  geom_line(aes(Year,rvals), color = "blue")+
+  ylab("Predicted Values")+
+  ggtitle("Model (Red) and Fit (Blue) Comparison")
+```
+
+# County Modeling Effectiveness
+```{r}
+alldrugs.OH.ts <- ts(unique(alldrugs.OH$TotalDrugReportsState), start = 2010, end = 2017)
+plot(alldrugs.OH.ts)
 ```
 
