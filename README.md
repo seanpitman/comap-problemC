@@ -7,4 +7,4 @@ individuals. We incorporate elements of the SIRS model into our model, allow-
 ing individuals to transition between a user and sober state. However, once one
 becomes a user, they can never transition back to a non-user state.
 
-Read the rest of the document here.
+Read the rest of the document [here](https://github.com/seanpitman/opioid-modeling/blob/master/Binder1.pdf).
